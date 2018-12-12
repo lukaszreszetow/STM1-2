@@ -68,9 +68,15 @@ public class Client extends AsyncTask<Point, Void, MainActivity.DaneOdSerwera> {
             } else {
                 Type type = new TypeToken<MainActivity.DaneOdSerwera>() {
                 }.getType();
-                MainActivity.DaneOdSerwera punkt = new Gson().fromJson(gsonString, type);
+                final MainActivity.DaneOdSerwera punkt = new Gson().fromJson(gsonString, type);
                 //  Log.d("Wiadomosc", "Client dostalem od serwera");
-                activity.triggerRysowania(punkt);
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.triggerRysowania(punkt);
+                    }
+                });
             }
 
 //

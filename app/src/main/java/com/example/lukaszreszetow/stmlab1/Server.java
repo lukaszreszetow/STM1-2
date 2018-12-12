@@ -64,13 +64,12 @@ public class Server {
                     BufferedReader br = new BufferedReader(isr);
                     String gsonString = br.readLine();
                     Type type = new TypeToken<Point>(){}.getType();
-                    Point punkt = new Gson().fromJson(gsonString, type);
-                    activity.rysujSerwer(punkt);
+                    final Point punkt = new Gson().fromJson(gsonString, type);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            //activity.msg.setText(message);
+                            activity.rysujSerwer(punkt);
                         }
                     });
 
