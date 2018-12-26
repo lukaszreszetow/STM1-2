@@ -1,11 +1,7 @@
 package com.example.lukaszreszetow.stmlab1;
 
 
-import android.graphics.Point;
 import android.util.Log;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
@@ -49,27 +44,21 @@ public class Server {
         @Override
         public void run() {
             try {
-                //Log.d("Wiadomosc", "Server started");
 
-                // create ServerSocket using specified port
                 serverSocket = new ServerSocket(socketServerPORT);
 
                 while (true) {
-                    // block the call until connection is created and return
-                    // Socket object
                     Socket socket = serverSocket.accept();
                     InputStream inputStream = socket.getInputStream();
 
                     InputStreamReader isr = new InputStreamReader(inputStream);
                     BufferedReader br = new BufferedReader(isr);
-                    String gsonString = br.readLine();
-                    Type type = new TypeToken<Point>(){}.getType();
-                    final Point punkt = new Gson().fromJson(gsonString, type);
+                    final String gsonString = br.readLine();
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            activity.rysujSerwer(punkt);
+                            activity.zmianaPozycjiClienta(Integer.parseInt(gsonString));
                         }
                     });
 
@@ -102,39 +91,21 @@ public class Server {
             try {
                 outputStream = hostThreadSocket.getOutputStream();
                 PrintStream printStream = new PrintStream(outputStream);
-                if(activity.koniecGry){
+                if(activity.getKoniecGry()){
                     printStream.print("KONIEC GRY");
                     Log.d("Wiadomosc", "KONIEC GRY");
                 } else {
-                    printStream.print(new Gson().toJson(activity.dane));
+                    printStream.print(activity.getPositionOfMyShip());
                 }
                 printStream.close();
 
-
-                activity.runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Log.d("Wiadomosc", "WIADOMOSC SERWER ");
-                        //activity.msg.setText(message);
-                    }
-                });
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
-            activity.runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    Log.d("Wiadomosc", "WIADOMOSC SERWER ");
-                    //activity.msg.setText(message);
-                }
-            });
-
-            if(activity.koniecGry){
+            if(activity.getKoniecGry()){
                 activity.finish();
             }
         }

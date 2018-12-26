@@ -22,13 +22,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    data class WektorPileczki(
-        var x: Double,
-        var y: Double
-    )
-
-    data class DaneOdSerwera(
-        var pozycjaPaletkiSerwera: Point,
-        var pozycjaPileczki: Point
-    )
+    enum class Direction{
+        LEFT, RIGHT, UNKNOWN
+    }
 }

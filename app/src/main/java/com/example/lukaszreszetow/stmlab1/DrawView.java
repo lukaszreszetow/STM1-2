@@ -1,50 +1,46 @@
 package com.example.lukaszreszetow.stmlab1;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DrawView extends View {
-    String TAG = "DRAW";
+
     int width;
     int height;
-    int przesuniecie = 10;
-    double przyspieszenie = 1.5;
     Boolean graWystartowala = false;
-    int radius = 30;
-    int szerokoscPaletki;
-    int wysokoscPaletki;
-    Point pozycjaPileczki;
-    Point pozycjaPaletki1;
-    Point pozycjaPaletki2;
     Paint paint;
-    Paint paintPaletka;
-    Boolean odblokowanoOnDraw = false;
-    MainActivity.WektorPileczki wektorPileczki = new MainActivity.WektorPileczki(2, 2);
+    Paint paint2;
     ClientActivity clientActivity;
     ServerActivity serverActivity;
-    MainActivity.DaneOdSerwera daneOdSerwera;
+    Point spaceshipPos;
+    Point spaceshipPosEnemy;
+    List<Point> shotsPos = new ArrayList<>();
+    List<Point> shotsPosEnemy = new ArrayList<>();
+    int sizeOfImage = 200;
+    int licznik = 0;
 
     public DrawView(Context context, int width, int height, @Nullable ClientActivity clientActivity, @Nullable ServerActivity serverActivity) {
         super(context);
         paint = new Paint();
-        paintPaletka = new Paint();
+        paint2 = new Paint();
         this.width = width;
         this.height = height;
-
-        szerokoscPaletki = (int) (width * 0.2);
-        wysokoscPaletki = (int) (height * 0.01);
-        pozycjaPileczki = new Point(width / 2, height / 2);
-        pozycjaPaletki1 = new Point((int) (width * 0.5 - szerokoscPaletki * 0.5), 300);
-        pozycjaPaletki2 = new Point((int) (width * 0.5 - szerokoscPaletki * 0.5), height - 300 - wysokoscPaletki);
-        daneOdSerwera = new MainActivity.DaneOdSerwera(pozycjaPaletki1, pozycjaPileczki);
+        spaceshipPos = new Point(width / 2 - 100, height - sizeOfImage);
+        spaceshipPosEnemy = new Point(width / 2 - 100, 0);
 
         if (clientActivity != null) {
             this.clientActivity = clientActivity;
@@ -52,26 +48,38 @@ public class DrawView extends View {
 
         if (serverActivity != null) {
             this.serverActivity = serverActivity;
-            serverActivity.odpowiedzClientowi(daneOdSerwera);
         }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (serverActivity != null) {
-            logika();
-            daneOdSerwera.setPozycjaPaletkiSerwera(pozycjaPaletki1);
-            daneOdSerwera.setPozycjaPileczki(pozycjaPileczki);
-            serverActivity.odpowiedzClientowi(daneOdSerwera);
-        } else {
-        }
+
         paint.setARGB(255, 0, 0, 0);
-        paintPaletka.setARGB(255, 255, 0, 0);
+        paint2.setARGB(255, 255, 0, 0);
         canvas.drawRect(0, 0, width, height, paint);
-        canvas.drawRect(pozycjaPaletki1.x, pozycjaPaletki1.y, pozycjaPaletki1.x + szerokoscPaletki, pozycjaPaletki1.y + wysokoscPaletki, paintPaletka);
-        canvas.drawRect(pozycjaPaletki2.x, pozycjaPaletki2.y, pozycjaPaletki2.x + szerokoscPaletki, pozycjaPaletki2.y + wysokoscPaletki, paintPaletka);
-        canvas.drawCircle(pozycjaPileczki.x, pozycjaPileczki.y, radius, paintPaletka);
+
+        logika();
+
+        drawShots(canvas);
+
+        Drawable spaceship = getResources().getDrawable(R.drawable.spaceshipwhite, null);
+        Drawable spaceshipFliped = getResources().getDrawable(R.drawable.spaceshipfliped, null);
+        spaceship.setBounds(spaceshipPos.x, spaceshipPos.y, spaceshipPos.x + 200, spaceshipPos.y + 200);
+        spaceshipFliped.setBounds(spaceshipPosEnemy.x, spaceshipPosEnemy.y, spaceshipPosEnemy.x + 200, spaceshipPosEnemy.y + 200);
+        spaceship.draw(canvas);
+        spaceshipFliped.draw(canvas);
+        Log.d("Draw", "Narysowalem statek");
+    }
+
+    private void drawShots(Canvas canvas) {
+        for (Point point : shotsPos) {
+            canvas.drawRect(point.x, point.y, point.x + 10, point.y + 20, paint2);
+        }
+
+        for (Point point : shotsPosEnemy) {
+            canvas.drawRect(point.x, point.y, point.x + 10, point.y + 20, paint2);
+        }
     }
 
     @Override
@@ -81,27 +89,6 @@ public class DrawView extends View {
                 runDrawing.run();
                 graWystartowala = true;
             }
-            if (event.getX() <= width / 2) {
-                if (pozycjaPaletki2.x - przesuniecie > 0) {
-                    pozycjaPaletki2.x -= przesuniecie;
-                }
-            } else {
-                if (pozycjaPaletki2.x + przesuniecie + szerokoscPaletki < width) {
-                    pozycjaPaletki2.x += przesuniecie;
-                }
-            }
-        }
-
-        if (serverActivity != null) {
-            if (event.getX() <= width / 2) {
-                if (pozycjaPaletki1.x - przesuniecie > 0) {
-                    pozycjaPaletki1.x -= przesuniecie;
-                }
-            } else {
-                if (pozycjaPaletki1.x + przesuniecie + szerokoscPaletki < width) {
-                    pozycjaPaletki1.x += przesuniecie;
-                }
-            }
         }
         return super.onTouchEvent(event);
     }
@@ -109,46 +96,94 @@ public class DrawView extends View {
     Handler handler = new Handler(Looper.getMainLooper());
     Runnable runDrawing = new Runnable() {
         public void run() {
-            clientActivity.executeClient(pozycjaPaletki2);
+            moveShots();
+            invalidate();
+            calculateIfDead();
+            if (clientActivity != null) {
+                clientActivity.executeClient(spaceshipPos.x);
+            }
             handler.postDelayed(this, 10);
+            if (licznik++ == 20) {
+                licznik = 0;
+                addShot();
+            }
         }
     };
 
-    public void logika() {
-        double nowyX = pozycjaPileczki.x + wektorPileczki.getX();
-        double nowyY = pozycjaPileczki.y + wektorPileczki.getY();
+    private void moveShots() {
+        for (Point point : shotsPos) {
+            point.y -= 5;
+        }
 
-        if (nowyX > radius && nowyX < width - radius) {
-            pozycjaPileczki.x = (int) nowyX;
+        for (Point point : shotsPosEnemy) {
+            point.y += 5;
+        }
+    }
+
+    private void addShot() {
+        shotsPos.add(new Point(spaceshipPos.x + 100, spaceshipPos.y - 20));
+        shotsPosEnemy.add(new Point(spaceshipPosEnemy.x + 100, spaceshipPosEnemy.y + 220));
+    }
+
+    private void calculateIfDead() {
+        Activity visibleActivity;
+        if(serverActivity != null){
+            visibleActivity = serverActivity;
         } else {
-            wektorPileczki.setX(wektorPileczki.getX() * -1);
+            visibleActivity = clientActivity;
         }
-
-        if (((nowyY - radius > 292.5) && (nowyY - radius < 307.5)) &&
-                (pozycjaPileczki.x < pozycjaPaletki1.x + szerokoscPaletki) &&
-                (pozycjaPileczki.x > pozycjaPaletki1.x)) {
-            wektorPileczki.setY(wektorPileczki.getY() * -1);
-            if (Math.abs(wektorPileczki.getY() * przyspieszenie) < 8) {
-                wektorPileczki.setY(wektorPileczki.getY() * przyspieszenie);
+        for (Point point : shotsPos) {
+            if (point.y < 200) {
+                if (point.x > spaceshipPosEnemy.x && point.x < spaceshipPosEnemy.x + 200) {
+                    Toast.makeText(visibleActivity, "WYGRALES!", Toast.LENGTH_LONG).show();
+                    visibleActivity.finish();
+                }
             }
         }
 
+        for( Point point : shotsPosEnemy){
+            if (point.y > height - 200) {
+                if (point.x > spaceshipPos.x && point.x < spaceshipPos.x + 200) {
+                    Toast.makeText(visibleActivity, "PRZEGRALES!", Toast.LENGTH_LONG).show();
+                    visibleActivity.finish();
+                }
+            }
+        }
+    }
 
-        if (((nowyY + radius > height - 307.5) && (nowyY + radius < height - 292.5)) &&
-                (pozycjaPileczki.x < pozycjaPaletki2.x + szerokoscPaletki) &&
-                (pozycjaPileczki.x > pozycjaPaletki2.x)) {
-            wektorPileczki.setY(wektorPileczki.getY() * -1);
-            if (Math.abs(wektorPileczki.getY() * przyspieszenie) < 8) {
-                wektorPileczki.setY(wektorPileczki.getY() * przyspieszenie);
+    public void logika() {
+
+        if (serverActivity != null) {
+            if (serverActivity.getDirection() == MainActivity.Direction.LEFT) {
+                spaceshipPos.x -= 5;
+                if (spaceshipPos.x < 0) {
+                    spaceshipPos.x = 0;
+                }
+            } else {
+                spaceshipPos.x += 5;
+                if (spaceshipPos.x > width - 200) {
+                    spaceshipPos.x = width - 200;
+                }
+            }
+            if (serverActivity.getPositionOfEnemy() != -1) {
+                spaceshipPosEnemy.x = serverActivity.getPositionOfEnemy();
+            }
+        } else {
+            if (clientActivity.getDirection() == MainActivity.Direction.LEFT) {
+                spaceshipPos.x -= 5;
+                if (spaceshipPos.x < 0) {
+                    spaceshipPos.x = 0;
+                }
+            } else {
+                spaceshipPos.x += 5;
+                if (spaceshipPos.x > width - 200) {
+                    spaceshipPos.x = width - 200;
+                }
+            }
+            if (clientActivity.getPositionOfEnemy() != -1) {
+                spaceshipPosEnemy.x = clientActivity.getPositionOfEnemy();
             }
         }
 
-        if (nowyY < 0 || nowyY > height) {
-            if (serverActivity != null) {
-                serverActivity.koniecGry = true;
-            }
-        }
-        //pozycjaPileczki.x += wektorPileczki.getX() * 10;
-        pozycjaPileczki.y += wektorPileczki.getY();
     }
 }
