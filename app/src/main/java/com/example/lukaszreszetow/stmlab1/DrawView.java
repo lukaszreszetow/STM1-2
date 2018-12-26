@@ -14,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.annimon.stream.Stream;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class DrawView extends View {
     int width;
     int height;
     Boolean graWystartowala = false;
+    Boolean koniecGry = false;
     Paint paint;
     Paint paint2;
     ClientActivity clientActivity;
@@ -35,6 +38,7 @@ public class DrawView extends View {
 
     public DrawView(Context context, int width, int height, @Nullable ClientActivity clientActivity, @Nullable ServerActivity serverActivity) {
         super(context);
+        koniecGry = false;
         paint = new Paint();
         paint2 = new Paint();
         this.width = width;
@@ -102,10 +106,12 @@ public class DrawView extends View {
             if (clientActivity != null) {
                 clientActivity.executeClient(spaceshipPos.x);
             }
-            handler.postDelayed(this, 10);
             if (licznik++ == 20) {
                 licznik = 0;
                 addShot();
+            }
+            if(!koniecGry) {
+                handler.postDelayed(this, 10);
             }
         }
     };
@@ -118,6 +124,10 @@ public class DrawView extends View {
         for (Point point : shotsPosEnemy) {
             point.y += 5;
         }
+
+        shotsPos = Stream.of(shotsPos).filter(point -> point.y > 0).toList();
+        shotsPosEnemy = Stream.of(shotsPosEnemy).filter(point -> point.y < height).toList();
+
     }
 
     private void addShot() {
@@ -137,6 +147,7 @@ public class DrawView extends View {
                 if (point.x > spaceshipPosEnemy.x && point.x < spaceshipPosEnemy.x + 200) {
                     Toast.makeText(visibleActivity, "WYGRALES!", Toast.LENGTH_LONG).show();
                     visibleActivity.finish();
+                    koniecGry = true;
                 }
             }
         }
@@ -146,6 +157,7 @@ public class DrawView extends View {
                 if (point.x > spaceshipPos.x && point.x < spaceshipPos.x + 200) {
                     Toast.makeText(visibleActivity, "PRZEGRALES!", Toast.LENGTH_LONG).show();
                     visibleActivity.finish();
+                    koniecGry = true;
                 }
             }
         }
