@@ -18,6 +18,10 @@ import com.annimon.stream.Stream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
 
 public class DrawView extends View {
 
@@ -34,7 +38,7 @@ public class DrawView extends View {
     List<Point> shotsPos = new ArrayList<>();
     List<Point> shotsPosEnemy = new ArrayList<>();
     int sizeOfImage = 200;
-    int licznik = 0;
+    boolean licznik = true;
 
     public DrawView(Context context, int width, int height, @Nullable ClientActivity clientActivity, @Nullable ServerActivity serverActivity) {
         super(context);
@@ -106,9 +110,10 @@ public class DrawView extends View {
             if (clientActivity != null) {
                 clientActivity.executeClient(spaceshipPos.x);
             }
-            if (licznik++ == 20) {
-                licznik = 0;
+            if (licznik) {
+                licznik = false;
                 addShot();
+                Observable.timer(400, TimeUnit.MILLISECONDS).subscribe(aLong -> licznik = true);
             }
             if(!koniecGry) {
                 handler.postDelayed(this, 10);
