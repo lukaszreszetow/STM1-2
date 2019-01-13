@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -70,9 +71,14 @@ public class DrawView extends View {
         logika();
 
         drawShots(canvas);
-
-        Drawable spaceship = getResources().getDrawable(R.drawable.spaceshipwhite, null);
-        Drawable spaceshipFliped = getResources().getDrawable(R.drawable.spaceshipfliped, null);
+        Context context;
+        if(serverActivity != null){
+            context = serverActivity;
+        } else {
+            context = clientActivity;
+        }
+        Drawable spaceship = ContextCompat.getDrawable(context, R.drawable.spaceshipwhite);
+        Drawable spaceshipFliped = ContextCompat.getDrawable(context, R.drawable.spaceshipfliped);
         spaceship.setBounds(spaceshipPos.x, spaceshipPos.y, spaceshipPos.x + 200, spaceshipPos.y + 200);
         spaceshipFliped.setBounds(spaceshipPosEnemy.x, spaceshipPosEnemy.y, spaceshipPosEnemy.x + 200, spaceshipPosEnemy.y + 200);
         spaceship.draw(canvas);
